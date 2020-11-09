@@ -52,7 +52,7 @@ class themes:
         
     @staticmethod
     def download(link, options_name = ""):
-        query = f"""wget "{link}" -q --show-progress --no-check-certificate -O "{options_name}" """
+        query = f"""wget "{link}" -q --show-progress --no-check-certificate -O "{options_name}.mp3" """
         subprocess.run(query, shell=True)
         
     def search_and_download(self):
