@@ -1,5 +1,7 @@
 import subprocess
 import os
+import eyed3
+
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
     
@@ -31,14 +33,14 @@ class themes:
         for j,i in enumerate(a.available_songs):
             print("\t",j, i["title"])
             links.append(i["link"])
-            names.append(i["title"])
+            names.append(i["title"]+".mp3")
         try:    
             start = int(input("\tEnter starting leave blank for all: "))
             end = int(input("\tEnter ending: ")) + 1
         except:
             start = None
             end = None
-        return zip(links[start:end], names[start:end])
+        return zip(links[start:end]+[a.cover_art], names[start:end]+[a.name+".jpg"])
     
     def search_result(self):
         results = []
@@ -52,7 +54,7 @@ class themes:
         
     @staticmethod
     def download(link, options_name = ""):
-        query = f"""wget "{link}" -q --show-progress --no-check-certificate -O "{options_name}.mp3" """
+        query = f"""wget "{link}" -q --show-progress --no-check-certificate -O "{options_name}" """
         subprocess.run(query, shell=True)
         
     def search_and_download(self):
@@ -64,16 +66,36 @@ class themes:
             os.chdir("./"+self.name)
         for i,j in dow_urls_with_options:
             themes.download(i,j)
+            if '.jpg' in j:
+                themes.embeder()
+                
+    @staticmethod
+    def embeder():
+        for j in os.listdir():
+            if '.jpg' in j:
+                image = j 
+        for j in os.listdir():
+            if '.mp3' in j:
+                themes.embed_art(j, image)
+        os.remove(image)       
+    @staticmethod
+    def embed_art(mp3, photo) :
+        audiofile = eyed3.load(mp3)
+        if (audiofile.tag == None):
+            audiofile.initTag()
+        audiofile.tag.images.set(3, open(photo,'rb').read(), 'image/jpeg')
+        audiofile.tag.save()
         
 class wrapper_themes:
     def __init__(self, info):
         self.name = info['title']
         self.cover_art = info['cover']
         self.theme = info['themes']
-    @property
+        
+    @property#gives title and audio links
     def available_songs(self):
         for i in self.theme:
-            yield {"title": f"{i['title']} {i['type']}", "link": i['mirrors'][0]['audio']}
+            yield {"title": f"{i['type']} {i['title']}", "link": i['mirrors'][0]['audio']}
         
 var = themes(input("Enter anime name: "))
 var.search_and_download()
